@@ -1,2 +1,5 @@
 /.idea
 /cs5110project2.iml
+/bin/
+/.project
+/.classpath
