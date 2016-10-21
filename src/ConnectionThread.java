@@ -2,6 +2,10 @@ import java.io.*;
 import java.net.Socket;
 
 public class ConnectionThread extends Thread {
+    // chat protocol constants
+    private final static String ENDING_MESSAGE = "exit";
+    private final static int MESSAGE_ACKNOWLEDGEMENT = 1;
+
     protected Socket socket;
 
     public ConnectionThread(Socket clientSocket) {
@@ -9,29 +13,33 @@ public class ConnectionThread extends Thread {
     }
 
     public void run() {
-        InputStream inp = null;
-        BufferedReader brinp = null;
-        // DataOutputStream out = null;
+        InputStream inputStreamFromClient;
+        BufferedReader bufferedReaderInFromClient;
+        DataOutputStream outToClient;
         try {
-            inp = socket.getInputStream();
-            brinp = new BufferedReader(new InputStreamReader(inp));
-            // out = new DataOutputStream(socket.getOutputStream());
+            inputStreamFromClient = socket.getInputStream();
+            bufferedReaderInFromClient = new BufferedReader(new InputStreamReader(inputStreamFromClient));
+            outToClient = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
+            System.out.println("Error: opening streams to client: " + e.getMessage());
             return;
         }
-        String line;
+        System.out.println(socket.getInetAddress() + " connected");
+
+        String inputLineFromClient;
         while (true) {
             try {
-                line = brinp.readLine();
-                if ((line == null) || line.equalsIgnoreCase("QUIT")) {
+                inputLineFromClient = bufferedReaderInFromClient.readLine();
+                if ((inputLineFromClient == null) || inputLineFromClient.equalsIgnoreCase(ENDING_MESSAGE)) {
                     socket.close();
                     return;
                 } else {
-                    // out.writeBytes(line + "\n\r");
-                    // out.flush();
+                    System.out.println(socket.getInetAddress() + ": " + inputLineFromClient);
+                    outToClient.writeByte(MESSAGE_ACKNOWLEDGEMENT);
+                    outToClient.flush();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Error receiving message from client: " + e.getMessage());
                 return;
             }
         }
