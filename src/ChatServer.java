@@ -37,6 +37,7 @@ public class ChatServer {
                 try {
                     inputLineFromClient = bufferedReaderInFromClient.readLine();
                     if ((inputLineFromClient == null) || inputLineFromClient.equalsIgnoreCase(ENDING_MESSAGE)) {
+                        System.out.println(socket.getInetAddress() + " disconnected");
                         socket.close();
                         return;
                     } else {
