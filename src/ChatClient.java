@@ -8,12 +8,13 @@ import java.net.SocketException;
 import java.util.Objects;
 
 public class ChatClient {
-    private final static String SERVER_ADDRESS = "localhost";
-
     // protocol constants
     private final static int PORT = 8888;
     private final static String ENDING_MESSAGE = "exit";
     private final static int MESSAGE_ACKNOWLEDGEMENT = 1;
+
+    private final static String DEFAULT_SERVER_ADDRESS = "localhost";
+    private final String serverAddress;
 
     // sockets and streams
     private Socket clientSocket;
@@ -21,23 +22,39 @@ public class ChatClient {
     private BufferedReader inFromServer;
     private BufferedReader inFromConsole;
 
+    private ChatClient(String serverAddress) {
+        this.serverAddress = serverAddress;
+    }
+
     public static void main(String argv[]) throws Exception
     {
-        ChatClient chatClient = new ChatClient();
+        // get server address from command line arguments
+        String serverAddress;
+        if (argv.length > 0) {
+            serverAddress = argv[0];
+        }
+        else {  // no commandline arguments
+            serverAddress = DEFAULT_SERVER_ADDRESS;
+        }
 
+        // create instance of client
+        ChatClient chatClient = new ChatClient(serverAddress);
+
+        // connect
         chatClient.connectSocketAndStream();
 
+        // run
         chatClient.inputLoop();
     }
 
     private void connectSocketAndStream() throws IOException {
         // make socket connection to server
         try {
-            clientSocket = new Socket(SERVER_ADDRESS, PORT);
+            clientSocket = new Socket(serverAddress, PORT);
         }
         catch (ConnectException e) {
             System.out.println("Unable to connect to server: " + e.getMessage());
-            return;
+            throw e;
         }
 
         // make input and output streams
@@ -46,7 +63,7 @@ public class ChatClient {
 
         inFromConsole = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.println("Connection established to: " + SERVER_ADDRESS + ":" + PORT);
+        System.out.println("Connection established to: " + serverAddress + ":" + PORT);
     }
 
     private void inputLoop() throws IOException {
