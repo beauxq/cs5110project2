@@ -41,7 +41,9 @@ public class ChatServer {
                         socket.close();
                         return;
                     } else {
-                        System.out.println(socket.getInetAddress() + ": " + inputLineFromClient);
+                        String displayString = socket.getInetAddress() + ": " + inputLineFromClient + '\n';
+                        System.out.print(displayString);
+                        outToClient.writeBytes(displayString);
                     }
                 } catch (IOException e) {
                     System.out.println("Error receiving message from client: " + e.getMessage());

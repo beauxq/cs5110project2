@@ -69,7 +69,8 @@ public class ChatClient {
         private void insertLine(String output) throws IOException {
             mutex.lock();
             System.out.print('\r' + output + '\n');
-            consoleReader.redrawLine();
+            consoleReader.drawLine();
+            consoleReader.flushConsole();
             mutex.unlock();
         }
     }
