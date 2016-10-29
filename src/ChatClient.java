@@ -55,7 +55,7 @@ public class ChatClient {
                     receivedLine = inFromServer.readLine();
                     insertLine(receivedLine);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println(e.getMessage());
                     return;
                 }
             }
@@ -129,9 +129,7 @@ public class ChatClient {
             }
             */
 
-            System.out.println("before readLine");
-            stringToSend = consoleReader.readLine(bottomConsoleLine, 'g');
-            System.out.println("after readLine");
+            stringToSend = consoleReader.readLine(bottomConsoleLine);
 
             try {
                 outToServer.writeBytes(stringToSend + '\n');
