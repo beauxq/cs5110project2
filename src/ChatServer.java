@@ -10,7 +10,6 @@ public class ChatServer {
     private static class ConnectionThread extends Thread {
         // chat protocol constants
         private final static String ENDING_MESSAGE = "exit";
-        private final static int MESSAGE_ACKNOWLEDGEMENT = 1;
 
         Socket socket;
 
