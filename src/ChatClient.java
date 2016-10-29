@@ -6,6 +6,10 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import jline.ConsoleReader;
 
 public class ChatClient {
     // protocol constants
@@ -19,11 +23,55 @@ public class ChatClient {
     // sockets and streams
     private Socket clientSocket;
     private DataOutputStream outToServer;
+
     private BufferedReader inFromServer;
-    private BufferedReader inFromConsole;
+    //private BufferedReader inFromConsole;
+
+    private ConsoleReader consoleReader;
+    private String bottomConsoleLine;
+
+    private final Lock mutex;
 
     private ChatClient(String serverAddress) {
         this.serverAddress = serverAddress;
+        mutex = new ReentrantLock();
+    }
+
+    private static class ReceiveFromServerThread extends Thread {
+        private BufferedReader inFromServer;
+        private final Lock mutex;
+        private ConsoleReader consoleReader;
+
+        ReceiveFromServerThread(BufferedReader inFromServer, Lock mutex, ConsoleReader consoleReader) {
+            this.inFromServer = inFromServer;
+            this.mutex = mutex;
+            this.consoleReader = consoleReader;
+        }
+
+        public void run() {
+            String receivedLine;
+            while (true) {  // TODO: how to exit this?
+                try {
+                    receivedLine = inFromServer.readLine();
+                    insertLine(receivedLine);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }
+
+        /**
+         * puts output to the console above the current line
+         * @param output
+         * @throws IOException
+         */
+        private void insertLine(String output) throws IOException {
+            mutex.lock();
+            System.out.print('\r' + output + '\n');
+            consoleReader.redrawLine();
+            mutex.unlock();
+        }
     }
 
     public static void main(String argv[]) throws Exception
@@ -43,6 +91,9 @@ public class ChatClient {
         // connect
         chatClient.connectSocketAndStream();
 
+        // run receiving thread
+        chatClient.runReceivingThread();
+
         // run
         chatClient.inputLoop();
     }
@@ -61,7 +112,8 @@ public class ChatClient {
         outToServer = new DataOutputStream(clientSocket.getOutputStream());
         inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-        inFromConsole = new BufferedReader(new InputStreamReader(System.in));
+        consoleReader = new ConsoleReader();
+        consoleReader.setInput(System.in);
 
         System.out.println("Connection established to: " + serverAddress + ":" + PORT);
     }
@@ -69,23 +121,32 @@ public class ChatClient {
     private void inputLoop() throws IOException {
         String stringToSend = "";
         while (!Objects.equals(stringToSend, ENDING_MESSAGE)) {
-            System.out.print("message to send (\"" + ENDING_MESSAGE + "\" to end): ");
-            stringToSend = inFromConsole.readLine();
+            bottomConsoleLine = "message to send (\"" + ENDING_MESSAGE + "\" to end): ";
+            // TODO: System.out.print();
+            /*
+            while (bottomConsoleLine.charAt(bottomConsoleLine.length() - 1) != '\n') {
+                char charRead = consoleReader.getEchoCharacter();
+            }
+            */
+
+            System.out.println("before readLine");
+            stringToSend = consoleReader.readLine(bottomConsoleLine, 'g');
+            System.out.println("after readLine");
 
             try {
                 outToServer.writeBytes(stringToSend + '\n');
             }
             catch (SocketException e) {
+                clientSocket.close();
                 System.out.println("Unable to send data to server: " + e.getMessage());
                 return;
-            }
-
-            if (!Objects.equals(stringToSend, ENDING_MESSAGE) &&
-                    inFromServer.read() != MESSAGE_ACKNOWLEDGEMENT) {
-                System.out.println("Error: acknowledgement not received");
             }
         }
 
         clientSocket.close();
+    }
+
+    private void runReceivingThread() {
+        new ReceiveFromServerThread(inFromServer, mutex, consoleReader).start();
     }
 }
