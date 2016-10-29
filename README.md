@@ -23,3 +23,12 @@
 (in the directory with runClient.sh)
 
     ./runClient.sh
+
+
+### JLine
+
+The client uses the JLine library to enable non-blocking console input: http://jline.sourceforge.net/
+
+The problem is discussed here: http://www.darkcoding.net/software/non-blocking-console-io-is-not-possible/
+
+JLine ConsoleReader documentation: http://jline.sourceforge.net/apidocs/index.html
