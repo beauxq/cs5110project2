@@ -36,8 +36,8 @@ public class ChatServer {
                 try {
                     inputLineFromClient = bufferedReaderInFromClient.readLine();
                     if ((inputLineFromClient == null) || inputLineFromClient.equalsIgnoreCase(ENDING_MESSAGE)) {
-                        System.out.println(socket.getInetAddress() + " disconnected");
-                        socket.close();
+                        String displayString = socket.getInetAddress() + ": client exited " + '\n';
+                        System.out.print(displayString);
                         return;
                     } else {
                         String displayString = socket.getInetAddress() + ": " + inputLineFromClient + '\n';
@@ -78,9 +78,9 @@ public class ChatServer {
             ConnectionThread connectionThread = new ConnectionThread(connectionSocket);
             connectionThread.start();
             connectionThread.join();  // wait for connection to end
-            break;  // stop after first connection ends - for part A
+//          break;  // stop after first connection ends - for part A
         }
 
-        serverSocket.close();
+//        serverSocket.close(); // sever will keep one if one client exits
     }
 }
