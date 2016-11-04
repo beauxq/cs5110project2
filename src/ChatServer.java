@@ -77,10 +77,10 @@ public class ChatServer {
             }
             ConnectionThread connectionThread = new ConnectionThread(connectionSocket);
             connectionThread.start();
-            connectionThread.join();  // wait for connection to end
-//          break;  // stop after first connection ends - for part A
+            // connectionThread.join();  // wait for connection to end
+            // break;  // stop after first connection ends - for part A
         }
 
-//        serverSocket.close(); // sever will keep one if one client exits
+        // serverSocket.close(); // sever will keep one if one client exits
     }
 }
