@@ -174,9 +174,9 @@ public class ChatClient {
                         // erase the character that is there
                         System.out.print('\r');
                         System.out.print(bottomLineInfo.bottomLine);
+                        System.out.print(" \r");
 
                         // put the cursor at the end of the line
-                        System.out.print(" \r");
                         System.out.print(bottomLineInfo.bottomLine);
                     }
                 }

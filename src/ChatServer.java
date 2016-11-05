@@ -3,7 +3,6 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -32,9 +31,15 @@ public class ChatServer {
                     e.printStackTrace();
                     break;
                 }
+                System.out.print(message);
                 listLock.lock();
-                for (ConnectionThread client:clients) {
-                    client.sendMessageToClient(message);
+                ListIterator<ConnectionThread> clientIterator = clients.listIterator();
+                while (clientIterator.hasNext()) {
+                    if (! clientIterator.next().sendMessageToClient(message)) {
+                        // if there was an error sending this message,
+                        // remove this client from the list of clients
+                        clientIterator.remove();
+                    }
                 }
                 listLock.unlock();
             }
@@ -56,13 +61,19 @@ public class ChatServer {
             // messages received between construction and initialization will go to System.out
         }
 
-        void sendMessageToClient(String messageToSend) {
+        /**
+         * send a message to the client that this thread is connected to
+         * returns whether the message was sent without error
+         * @param messageToSend the message to be sent to the client
+         * @return whether this client can receive messages
+         */
+        boolean sendMessageToClient(String messageToSend) {
             try {
                 outToClient.writeBytes(messageToSend);
-            }
-            catch (IOException e) {
-                System.out.println("Error sending message to client " + socket.getInetAddress());
-                e.printStackTrace();
+                return true;
+            } catch (IOException e) {
+                // this client doesn't get messages anymore
+                return false;
             }
         }
 
@@ -77,7 +88,7 @@ public class ChatServer {
                 System.out.println("Error: opening streams to client: " + e.getMessage());
                 return;
             }
-            System.out.println(socket.getInetAddress() + " connected");
+            chatMessageQueue.add(socket.getInetAddress() + " connected\n");
 
             String inputLineFromClient;
             while (true) {
@@ -85,11 +96,10 @@ public class ChatServer {
                     inputLineFromClient = bufferedReaderInFromClient.readLine();
                     if ((inputLineFromClient == null) || inputLineFromClient.equalsIgnoreCase(ENDING_MESSAGE)) {
                         String displayString = socket.getInetAddress() + ": client exited " + '\n';
-                        System.out.print(displayString);
+                        chatMessageQueue.add(displayString);
                         return;
                     } else {
                         String displayString = socket.getInetAddress() + ": " + inputLineFromClient + '\n';
-                        System.out.print(displayString);
                         chatMessageQueue.add(displayString);
                         //outToClient.writeBytes(displayString);
                     }
