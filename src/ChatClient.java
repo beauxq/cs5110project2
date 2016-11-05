@@ -155,8 +155,7 @@ public class ChatClient {
         while (!Objects.equals(stringToSend, ENDING_MESSAGE)) {
             mutex.lock();
             bottomLineInfo.bottomLine = PROMPT;
-            System.out.print('\r');
-            System.out.print(bottomLineInfo.bottomLine);
+            redrawBottomLine();
             mutex.unlock();
 
             while (bottomLineInfo.bottomLine.charAt(bottomLineInfo.bottomLine.length() - 1) != '\n') {
@@ -171,20 +170,14 @@ public class ChatClient {
                         bottomLineInfo.bottomLine =
                                 bottomLineInfo.bottomLine.substring(0, bottomLineInfo.bottomLine.length() - 1);
 
-                        // erase the character that is there
-                        System.out.print('\r');
-                        System.out.print(bottomLineInfo.bottomLine);
-
-                        // put the cursor at the end of the line
-                        System.out.print(" \r");
-                        System.out.print(bottomLineInfo.bottomLine);
+                        redrawBottomLine();
                     }
                 }
                 else if (charRead >= 32) {  // printable character
-                    // TODO: either restrict the length to one line, or handle multiple lines
                     bottomLineInfo.bottomLine += (char)charRead;
-                    System.out.print((char)charRead);
+                    redrawBottomLine();
                 }
+                // TODO: handle arrow keys, insertion in the middle, clipboard
                 mutex.unlock();
             }
 
@@ -208,6 +201,29 @@ public class ChatClient {
         }
 
         clientSocket.close();
+    }
+
+    private void redrawBottomLine() {
+        int width = consoleReader.getTermwidth() - 1;  // - 1 just for safety padding
+        String toDisplay;
+
+        // if the line is long, show only the end of it
+        if (bottomLineInfo.bottomLine.length() > width) {
+            toDisplay = bottomLineInfo.bottomLine.substring(bottomLineInfo.bottomLine.length() - width);
+        }
+        else {
+            toDisplay = bottomLineInfo.bottomLine;
+        }
+
+        // erase what is there
+        System.out.print('\r');
+        for (int i = width; i > 0; --i) {
+            System.out.print(' ');
+        }
+        System.out.print("\r");
+
+        // draw the line leaving the cursor at the end
+        System.out.print(toDisplay);
     }
 
     private void runReceivingThread() {
