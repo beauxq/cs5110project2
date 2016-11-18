@@ -1,5 +1,6 @@
 # cs 5110 project 2
 
+a console based chat application
 
 ### Compile the server:
 
