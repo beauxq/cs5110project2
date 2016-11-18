@@ -15,20 +15,22 @@
 
 ### Compile the client:
 
-(I haven't figured out how to do this from the terminal yet, I've only done it with Eclipse or IntelliJ.)
+    javac -classpath .:jline-1.0.jar: ChatClient.java
 
 
 ### Run the client:
 
-(in the directory with runClient.sh)
+    java -classpath .:jline-1.0.jar ChatClient server
+
+(or in the directory with runClient.sh)
 
     ./runClient.sh
 
 
 ### JLine
 
-The client uses the JLine library to enable non-blocking console input: http://jline.sourceforge.net/
+The client uses the JLine library to enable enable reading a single character from the console and querying the width of the console: http://jline.sourceforge.net/
 
-The problem is discussed here: http://www.darkcoding.net/software/non-blocking-console-io-is-not-possible/
+Part of this problem is discussed here: http://www.darkcoding.net/software/non-blocking-console-io-is-not-possible/
 
 JLine ConsoleReader documentation: http://jline.sourceforge.net/apidocs/index.html
