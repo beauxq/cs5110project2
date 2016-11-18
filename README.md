@@ -21,7 +21,7 @@ a console based chat application
 
 ### Run the client:
 
-    java -classpath .:jline-1.0.jar ChatClient server
+    java -classpath .:jline-1.0.jar ChatClient <server address>
 
 (or in the directory with runClient.sh)
 
